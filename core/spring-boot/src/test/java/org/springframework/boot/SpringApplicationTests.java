@@ -1260,7 +1260,7 @@ class SpringApplicationTests {
 			bootstrapContext.addCloseListener((event) -> {
 				String string = event.getBootstrapContext().get(String.class);
 				assertThat(string).isNotNull();
-				event.getApplicationContext().getBeanFactory().registerSingleton("test", string);
+				event.getConfigurableApplicationContext().getBeanFactory().registerSingleton("test", string);
 			});
 		});
 		ConfigurableApplicationContext applicationContext = application.run();

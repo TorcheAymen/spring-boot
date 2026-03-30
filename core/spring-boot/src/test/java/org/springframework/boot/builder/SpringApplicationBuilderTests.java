@@ -329,7 +329,7 @@ class SpringApplicationBuilderTests {
 		SpringApplicationBuilder application = new SpringApplicationBuilder(ExampleConfig.class)
 			.web(WebApplicationType.NONE)
 			.addBootstrapRegistryInitializer((context) -> context.addCloseListener(
-					(event) -> event.getApplicationContext().getBeanFactory().registerSingleton("test", "spring")));
+					(event) -> event.getConfigurableApplicationContext().getBeanFactory().registerSingleton("test", "spring")));
 		this.context = application.run();
 		assertThat(this.context.getBean("test")).isEqualTo("spring");
 	}

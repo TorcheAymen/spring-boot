@@ -65,7 +65,7 @@ class SubversionConfigDataLoader implements ConfigDataLoader<SubversionConfigDat
 	private static void onBootstrapContextClosed(BootstrapContextClosedEvent event) {
 		SubversionClient subversionClient = event.getBootstrapContext().get(SubversionClient.class);
 		Assert.state(subversionClient != null, "'subversionClient' must not be null");
-		event.getApplicationContext().getBeanFactory().registerSingleton("subversionClient", subversionClient);
+		event.getConfigurableApplicationContext().getBeanFactory().registerSingleton("subversionClient", subversionClient);
 	}
 
 }

@@ -67,7 +67,7 @@ class SpringBootConditionTests {
 	static class AlwaysThrowsCondition extends SpringBootCondition {
 
 		@Override
-		public ConditionOutcome getMatchOutcome(ConditionContext context, AnnotatedTypeMetadata metadata) {
+		public ConditionOutcome getMatchOutcome(ConditionContext context, AnnotatedTypeMetadata metadata) throws Exception{
 			throw new RuntimeException("Oh no!");
 		}
 

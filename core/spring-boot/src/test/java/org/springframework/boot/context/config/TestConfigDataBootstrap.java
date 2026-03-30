@@ -134,7 +134,7 @@ class TestConfigDataBootstrap {
 
 		@Override
 		public void onApplicationEvent(BootstrapContextClosedEvent event) {
-			event.getApplicationContext().getBeanFactory().registerSingleton("loaderHelper", this);
+			event.getConfigurableApplicationContext().getBeanFactory().registerSingleton("loaderHelper", this);
 		}
 
 	}

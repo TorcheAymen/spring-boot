@@ -28,11 +28,11 @@ import org.springframework.context.ConfigurableApplicationContext;
  */
 public class BootstrapContextClosedEvent extends ApplicationEvent {
 
-	private final ConfigurableApplicationContext applicationContext;
+	private final ConfigurableApplicationContext configurableApplicationContext;
 
 	BootstrapContextClosedEvent(BootstrapContext source, ConfigurableApplicationContext applicationContext) {
 		super(source);
-		this.applicationContext = applicationContext;
+		this.configurableApplicationContext = applicationContext;
 	}
 
 	/**
@@ -47,8 +47,8 @@ public class BootstrapContextClosedEvent extends ApplicationEvent {
 	 * Return the prepared application context.
 	 * @return the application context
 	 */
-	public ConfigurableApplicationContext getApplicationContext() {
-		return this.applicationContext;
+	public ConfigurableApplicationContext getConfigurableApplicationContext() {
+		return this.configurableApplicationContext;
 	}
 
 }

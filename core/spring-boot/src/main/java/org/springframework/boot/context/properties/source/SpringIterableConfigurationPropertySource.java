@@ -78,7 +78,7 @@ class SpringIterableConfigurationPropertySource extends SpringConfigurationPrope
 	private BiPredicate<ConfigurationPropertyName, ConfigurationPropertyName> getAncestorOfCheck(
 			PropertyMapper[] mappers) {
 		BiPredicate<ConfigurationPropertyName, ConfigurationPropertyName> ancestorOfCheck = mappers[0]
-			.getAncestorOfCheck();
+				.getAncestorOfCheck();
 		for (int i = 1; i < mappers.length; i++) {
 			ancestorOfCheck = ancestorOfCheck.or(mappers[i].getAncestorOfCheck());
 		}
@@ -179,7 +179,7 @@ class SpringIterableConfigurationPropertySource extends SpringConfigurationPrope
 		@Nullable ConfigurationPropertyName[] configurationPropertyNames = this.configurationPropertyNames;
 		if (configurationPropertyNames == null) {
 			configurationPropertyNames = getCache()
-				.getConfigurationPropertyNames(getPropertySource().getPropertyNames());
+					.getConfigurationPropertyNames(getPropertySource().getPropertyNames());
 			this.configurationPropertyNames = configurationPropertyNames;
 		}
 		return configurationPropertyNames;
@@ -357,10 +357,10 @@ class SpringIterableConfigurationPropertySource extends SpringConfigurationPrope
 		}
 
 		private record Data(Map<ConfigurationPropertyName, Set<String>> mappings,
-				Map<String, ConfigurationPropertyName> reverseMappings,
-				@Nullable Set<ConfigurationPropertyName> descendants,
-				ConfigurationPropertyName @Nullable [] configurationPropertyNames,
-				@Nullable Map<String, Object> systemEnvironmentCopy, String @Nullable [] lastUpdated) {
+							Map<String, ConfigurationPropertyName> reverseMappings,
+							@Nullable Set<ConfigurationPropertyName> descendants,
+							ConfigurationPropertyName @Nullable [] configurationPropertyNames,
+							@Nullable Map<String, Object> systemEnvironmentCopy, String @Nullable [] lastUpdated) {
 
 		}
 

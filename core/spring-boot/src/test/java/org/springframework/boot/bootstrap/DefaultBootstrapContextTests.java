@@ -296,7 +296,7 @@ class DefaultBootstrapContextTests {
 		public void onApplicationEvent(BootstrapContextClosedEvent event) {
 			this.called++;
 			this.bootstrapContext = event.getBootstrapContext();
-			this.applicationContext = event.getApplicationContext();
+			this.applicationContext = event.getConfigurableApplicationContext();
 		}
 
 		@Override
