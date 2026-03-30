@@ -547,18 +547,11 @@ class BindableRuntimeHintsRegistrarTests {
 
 	public static class Person {
 
-		@SuppressWarnings("unused")
-		private final String firstName;
-
-		@SuppressWarnings("unused")
-		private final String lastName;
 
 		@NestedConfigurationProperty
 		private final Address address;
 
-		Person(String firstName, String lastName, Address address) {
-			this.firstName = firstName;
-			this.lastName = lastName;
+		Person(Address address) {
 			this.address = address;
 		}
 
