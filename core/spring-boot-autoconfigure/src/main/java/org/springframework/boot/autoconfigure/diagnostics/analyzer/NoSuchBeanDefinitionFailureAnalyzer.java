@@ -203,10 +203,13 @@ class NoSuchBeanDefinitionFailureAnalyzer extends AbstractInjectionFailureAnalyz
 
 		private final @Nullable String methodName;
 
+		private static final int EXPECTED_TOKEN_COUNT = 2;
+
+
 		Source(String source) {
 			String[] tokens = source.split("#");
 			this.className = (tokens.length > 1) ? tokens[0] : source;
-			this.methodName = (tokens.length != 2) ? null : tokens[1];
+			this.methodName = (tokens.length != EXPECTED_TOKEN_COUNT) ? null : tokens[1];
 		}
 
 		String getClassName() {

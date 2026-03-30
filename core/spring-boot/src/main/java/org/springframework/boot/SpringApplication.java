@@ -473,6 +473,8 @@ public class SpringApplication {
 		}
 		listeners.contextLoaded(context);
 	}
+
+
 	private void addAotGeneratedInitializerIfNecessary(List<ApplicationContextInitializer<?>> initializers) {
 		if (NativeDetector.inNativeImage()) {
 			NativeImageRequirementsException.throwIfNotMet();
