@@ -317,7 +317,8 @@ public class SpringApplication {
 			Banner printedBanner = printBanner(environment);
 			context = createApplicationContext();
 			context.setApplicationStartup(this.applicationStartup);
-			prepareContext(bootstrapContext, context, environment, listeners, applicationArguments, printedBanner);
+			ContextPreparationParameters params = new ContextPreparationParameters(bootstrapContext, context, environment, listeners, applicationArguments, printedBanner);
+			prepareContext(params);
 			refreshContext(context);
 			afterRefresh(context, applicationArguments);
 			Duration timeTakenToStarted = startup.started();
@@ -377,9 +378,64 @@ public class SpringApplication {
 		return (environmentType != null) ? environmentType : ApplicationEnvironment.class;
 	}
 
-	private void prepareContext(DefaultBootstrapContext bootstrapContext, ConfigurableApplicationContext context,
-			ConfigurableEnvironment environment, SpringApplicationRunListeners listeners,
-			ApplicationArguments applicationArguments, @Nullable Banner printedBanner) {
+	private static final class ContextPreparationParameters {
+
+		private final DefaultBootstrapContext bootstrapContext;
+
+		private final ConfigurableApplicationContext context;
+
+		private final ConfigurableEnvironment environment;
+
+		private final SpringApplicationRunListeners listeners;
+
+		private final ApplicationArguments applicationArguments;
+
+		private final @Nullable Banner printedBanner;
+
+		private ContextPreparationParameters(DefaultBootstrapContext bootstrapContext,
+				ConfigurableApplicationContext context, ConfigurableEnvironment environment,
+				SpringApplicationRunListeners listeners, ApplicationArguments applicationArguments,
+				@Nullable Banner printedBanner) {
+			this.bootstrapContext = bootstrapContext;
+			this.context = context;
+			this.environment = environment;
+			this.listeners = listeners;
+			this.applicationArguments = applicationArguments;
+			this.printedBanner = printedBanner;
+		}
+
+		public DefaultBootstrapContext getBootstrapContext() {
+			return this.bootstrapContext;
+		}
+
+		public ConfigurableApplicationContext getContext() {
+			return this.context;
+		}
+
+		public ConfigurableEnvironment getEnvironment() {
+			return this.environment;
+		}
+
+		public SpringApplicationRunListeners getListeners() {
+			return this.listeners;
+		}
+
+		public ApplicationArguments getApplicationArguments() {
+			return this.applicationArguments;
+		}
+
+		public @Nullable Banner getPrintedBanner() {
+			return this.printedBanner;
+		}
+	}
+	private void prepareContext(ContextPreparationParameters params) {
+		ConfigurableApplicationContext context = params.getContext();
+		ConfigurableEnvironment environment = params.getEnvironment();
+		SpringApplicationRunListeners listeners = params.getListeners();
+		DefaultBootstrapContext bootstrapContext = params.getBootstrapContext();
+		ApplicationArguments applicationArguments = params.getApplicationArguments();
+		Banner printedBanner = params.getPrintedBanner();
+
 		context.setEnvironment(environment);
 		postProcessApplicationContext(context);
 		addAotGeneratedInitializerIfNecessary(this.initializers);
@@ -417,7 +473,6 @@ public class SpringApplication {
 		}
 		listeners.contextLoaded(context);
 	}
-
 	private void addAotGeneratedInitializerIfNecessary(List<ApplicationContextInitializer<?>> initializers) {
 		if (NativeDetector.inNativeImage()) {
 			NativeImageRequirementsException.throwIfNotMet();
