@@ -290,6 +290,55 @@ class SpringIterableConfigurationPropertySourceTests {
 			.isEqualTo(ConfigurationPropertyState.PRESENT);
 	}
 
+	@Test
+	void checkDescendantsShouldReturnCorrectState() {
+		Map<String, Object> map = new LinkedHashMap<>();
+		map.put("server.port", "8080");
+		EnumerablePropertySource<?> source = new MapPropertySource("test", map);
+		SpringIterableConfigurationPropertySource adapter = new SpringIterableConfigurationPropertySource(
+				source, false, DefaultPropertyMapper.INSTANCE);
+
+		assertThat(adapter.containsDescendantOf(ConfigurationPropertyName.of("server")))
+				.isEqualTo(ConfigurationPropertyState.PRESENT);
+		assertThat(adapter.containsDescendantOf(ConfigurationPropertyName.of("logging")))
+				.isEqualTo(ConfigurationPropertyState.ABSENT);
+	}
+
+	@Test
+	void getFromCacheOrComputeShouldHandleCaching() {
+
+		Map<String, Object> map = new LinkedHashMap<>();
+		map.put("app.name", "refactoring-test");
+		EnumerablePropertySource<?> source = new MapPropertySource("test", map);
+		SpringIterableConfigurationPropertySource adapter = new SpringIterableConfigurationPropertySource(
+				source, false, DefaultPropertyMapper.INSTANCE);
+
+		ConfigurationPropertyName name = ConfigurationPropertyName.of("app");
+
+
+		ConfigurationPropertyState firstResult = adapter.containsDescendantOf(name);
+
+
+		ConfigurationPropertyState secondResult = adapter.containsDescendantOf(name);
+
+		assertThat(firstResult).isEqualTo(secondResult);
+		assertThat(secondResult).isEqualTo(ConfigurationPropertyState.PRESENT);
+	}
+
+	@Test
+	void computeDescendantStateShouldIdentifyAncestors() {
+
+		Map<String, Object> map = new LinkedHashMap<>();
+		map.put("spring.datasource.url", "jdbc:h2:mem:test");
+		EnumerablePropertySource<?> source = new MapPropertySource("test", map);
+		SpringIterableConfigurationPropertySource adapter = new SpringIterableConfigurationPropertySource(
+				source, false, DefaultPropertyMapper.INSTANCE);
+
+
+		assertThat(adapter.containsDescendantOf(ConfigurationPropertyName.of("spring.datasource")))
+				.isEqualTo(ConfigurationPropertyState.PRESENT);
+	}
+
 	/**
 	 * Test {@link PropertySource} that's also an {@link OriginLookup}.
 	 *
