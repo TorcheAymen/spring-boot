@@ -138,10 +138,24 @@ class SpringIterableConfigurationPropertySource extends SpringConfigurationPrope
 
 	@Override
 	public ConfigurationPropertyState containsDescendantOf(ConfigurationPropertyName name) {
+
 		ConfigurationPropertyState result = super.containsDescendantOf(name);
 		if (result != ConfigurationPropertyState.UNKNOWN) {
 			return result;
 		}
+
+
+		ConfigurationPropertyState descendantResult = checkDescendants(name);
+		if (descendantResult != null) {
+			return descendantResult;
+		}
+
+		return getFromCacheOrCompute(name);
+	}
+
+
+
+	private @Nullable ConfigurationPropertyState checkDescendants(ConfigurationPropertyName name) {
 		if (this.ancestorOfCheck == PropertyMapper.DEFAULT_ANCESTOR_OF_CHECK) {
 			Set<ConfigurationPropertyName> descendants = getCache().getDescendants();
 			if (descendants != null) {
@@ -152,14 +166,30 @@ class SpringIterableConfigurationPropertySource extends SpringConfigurationPrope
 						: ConfigurationPropertyState.PRESENT;
 			}
 		}
-		result = (this.containsDescendantOfCache != null) ? this.containsDescendantOfCache.get(name) : null;
-		if (result == null) {
-			result = (!ancestorOfCheck(name)) ? ConfigurationPropertyState.ABSENT : ConfigurationPropertyState.PRESENT;
-			if (this.containsDescendantOfCache != null) {
-				this.containsDescendantOfCache.put(name, result);
-			}
+		return null;
+	}
+
+
+
+	private ConfigurationPropertyState getFromCacheOrCompute(ConfigurationPropertyName name) {
+
+		if (this.containsDescendantOfCache == null) {
+			return computeDescendantState(name);
 		}
-		return result;
+
+
+		ConfigurationPropertyState cached = this.containsDescendantOfCache.get(name);
+		if (cached == null) {
+			cached = computeDescendantState(name);
+			this.containsDescendantOfCache.put(name, cached);
+		}
+
+		return cached;
+	}
+
+
+	private ConfigurationPropertyState computeDescendantState(ConfigurationPropertyName name) {
+		return (!ancestorOfCheck(name)) ? ConfigurationPropertyState.ABSENT : ConfigurationPropertyState.PRESENT;
 	}
 
 	private boolean ancestorOfCheck(ConfigurationPropertyName name) {
