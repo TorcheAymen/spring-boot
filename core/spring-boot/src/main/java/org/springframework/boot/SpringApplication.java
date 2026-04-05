@@ -270,7 +270,7 @@ public class SpringApplication {
 	 * @see #run(Class, String[])
 	 * @see #setSources(Set)
 	 */
-	@SuppressWarnings({ "unchecked", "rawtypes" })
+	@SuppressWarnings({"unchecked", "rawtypes"})
 	public SpringApplication(@Nullable ResourceLoader resourceLoader, Class<?>... primarySources) {
 		this.resourceLoader = resourceLoader;
 		Assert.notNull(primarySources, "'primarySources' must not be null");
@@ -348,34 +348,31 @@ public class SpringApplication {
 		return bootstrapContext;
 	}
 
-	private ConfigurableEnvironment prepareEnvironment(SpringApplicationRunListeners listeners,
+private void prepareEnvironment(SpringApplicationRunListeners listeners,
 			DefaultBootstrapContext bootstrapContext, ApplicationArguments applicationArguments) {
-		// Create and configure the environment
-		ConfigurableEnvironment environment = getOrCreateEnvironment();
-		configureEnvironment(environment, applicationArguments.getSourceArgs());
-		ConfigurationPropertySources.attach(environment);
-		listeners.environmentPrepared(bootstrapContext, environment);
-		ApplicationInfoPropertySource.moveToEnd(environment);
-		DefaultPropertiesPropertySource.moveToEnd(environment);
-		Assert.state(!environment.containsProperty("spring.main.environment-prefix"),
+		
+		ConfigurableEnvironment env = getOrCreateEnvironment();
+		
+		configureEnvironment(env, applicationArguments.getSourceArgs());
+		ConfigurationPropertySources.attach(env);
+		listeners.environmentPrepared(bootstrapContext, env);
+		ApplicationInfoPropertySource.moveToEnd(env);
+		DefaultPropertiesPropertySource.moveToEnd(env);
+		Assert.state(!env.containsProperty("spring.main.environment-prefix"),
 				"Environment prefix cannot be set via properties.");
-		bindToSpringApplication(environment);
+		bindToSpringApplication(env);
+		
 		if (!this.isCustomEnvironment) {
 			EnvironmentConverter environmentConverter = new EnvironmentConverter(getClassLoader());
-			environment = environmentConverter.convertEnvironmentIfNecessary(environment, deduceEnvironmentClass());
+			env = environmentConverter.convertEnvironmentIfNecessary(env, deduceEnvironmentClass());
 		}
-		ConfigurationPropertySources.attach(environment);
-		return environment;
+		ConfigurationPropertySources.attach(env);
+		
+		this.envForPrepareEnvironment = env;
 	}
-
-	private Class<? extends ConfigurableEnvironment> deduceEnvironmentClass() {
-		WebApplicationType webApplicationType = this.properties.getWebApplicationType();
-		Class<? extends ConfigurableEnvironment> environmentType = this.applicationContextFactory
-			.getEnvironmentType(webApplicationType);
-		if (environmentType == null && this.applicationContextFactory != ApplicationContextFactory.DEFAULT) {
-			environmentType = ApplicationContextFactory.DEFAULT.getEnvironmentType(webApplicationType);
-		}
-		return (environmentType != null) ? environmentType : ApplicationEnvironment.class;
+	
+	private ConfigurableEnvironment getEnvForPrepareEnvironment(){
+		return this.envForPrepareEnvironment;
 	}
 
 	private static final class ContextPreparationParameters {
@@ -385,6 +382,8 @@ public class SpringApplication {
 		private final ConfigurableApplicationContext context;
 
 		private final ConfigurableEnvironment environment;
+
+		private final ConfigurableEnvironment envForPrepareEnvironment; 
 
 		private final SpringApplicationRunListeners listeners;
 
