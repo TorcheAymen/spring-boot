@@ -50,6 +50,7 @@ public class ApplicationPid {
 		this.pid = pid;
 	}
 
+	//modification
 	private @Nullable Long currentProcessPid() throws ApplicationPidException {
 		try {
 			return ProcessHandle.current().pid();
