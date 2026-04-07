@@ -243,12 +243,22 @@ class ConfigDataEnvironment {
 				importer.getOptionalLocations());
 	}
 
+	// factorisation des méthodes process
+	private ConfigDataEnvironmentContributors process(ConfigDataEnvironmentContributors contributors,
+        ConfigDataImporter importer, ConfigDataActivationContext activationContext,
+        String traceMessage, BiConsumer<ConfigurableBootstrapContext, ConfigDataEnvironmentContributor> binderOption) {
+   
+		this.logger.trace(traceMessage);
+		contributors = contributors.withProcessedImports(importer, activationContext);
+		registerBootstrapBinder(contributors, activationContext, binderOption);
+		return contributors;
+}
+
+
 	private ConfigDataEnvironmentContributors processInitial(ConfigDataEnvironmentContributors contributors,
 			ConfigDataImporter importer) {
-		this.logger.trace("Processing initial config data environment contributors without activation context");
-		contributors = contributors.withProcessedImports(importer, null);
-		registerBootstrapBinder(contributors, null, DENY_INACTIVE_BINDING);
-		return contributors;
+		return process(contributors, importer, null,
+			"Processing initial config data environment contributors without activation context", DENY_INACTIVE_BINDING);
 	}
 
 	private ConfigDataActivationContext createActivationContext(Binder initialBinder) {
@@ -266,10 +276,8 @@ class ConfigDataEnvironment {
 
 	private ConfigDataEnvironmentContributors processWithoutProfiles(ConfigDataEnvironmentContributors contributors,
 			ConfigDataImporter importer, ConfigDataActivationContext activationContext) {
-		this.logger.trace("Processing config data environment contributors with initial activation context");
-		contributors = contributors.withProcessedImports(importer, activationContext);
-		registerBootstrapBinder(contributors, activationContext, DENY_INACTIVE_BINDING);
-		return contributors;
+		return process(contributors, importer, activationContext,
+			"Processing config data environment contributors with initial activation context", DENY_INACTIVE_BINDING);
 	}
 
 	private ConfigDataActivationContext withProfiles(ConfigDataEnvironmentContributors contributors,
@@ -318,10 +326,8 @@ class ConfigDataEnvironment {
 
 	private ConfigDataEnvironmentContributors processWithProfiles(ConfigDataEnvironmentContributors contributors,
 			ConfigDataImporter importer, ConfigDataActivationContext activationContext) {
-		this.logger.trace("Processing config data environment contributors with profile activation context");
-		contributors = contributors.withProcessedImports(importer, activationContext);
-		registerBootstrapBinder(contributors, activationContext, ALLOW_INACTIVE_BINDING);
-		return contributors;
+		return process(contributors, importer, activationContext,
+			"Processing config data environment contributors with profile activation context", ALLOW_INACTIVE_BINDING);
 	}
 
 	private void registerBootstrapBinder(ConfigDataEnvironmentContributors contributors,
