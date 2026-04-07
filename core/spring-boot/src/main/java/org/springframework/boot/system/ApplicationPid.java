@@ -42,22 +42,36 @@ public class ApplicationPid {
 
 	private final @Nullable Long pid;
 
+	private final java.util.List<PidExtractionStrategy> strategies;
+
 	public ApplicationPid() {
+		this.strategies = java.util.List.of(new Java9PidStrategy(), new JmxPidStrategy());
+		this.pid = currentProcessPid();
+	}
+
+	public ApplicationPid(java.util.List<PidExtractionStrategy> strategies) {
+		this.strategies = strategies;
 		this.pid = currentProcessPid();
 	}
 
 	protected ApplicationPid(@Nullable Long pid) {
+		this.strategies = java.util.Collections.emptyList();
 		this.pid = pid;
 	}
 
-	//modification
 	private @Nullable Long currentProcessPid() throws ApplicationPidException {
-		try {
-			return ProcessHandle.current().pid();
+		for (PidExtractionStrategy strategy : this.strategies) {
+			try {
+				Long extractedPid = strategy.extractPid();
+				if (extractedPid != null) {
+					return extractedPid;
+				}
+			}
+			catch (Exception ex) {
+				// Ignore and try the next strategy
+			}
 		}
-		catch (Throwable ex) {
-			throw new ApplicationPidException("Failed to get current process PID"  + ex.getMessage());
-		}
+		throw new ApplicationPidException("Failed to get current process PID from " + this.strategies.size() + " strategies.");
 	}
 
 	/**
