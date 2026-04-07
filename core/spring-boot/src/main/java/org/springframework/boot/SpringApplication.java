@@ -313,7 +313,14 @@ public class SpringApplication {
 		listeners.starting(bootstrapContext, this.mainApplicationClass);
 		try {
 			ApplicationArguments applicationArguments = new DefaultApplicationArguments(args);
-			ConfigurableEnvironment environment = prepareEnvironment(listeners, bootstrapContext, applicationArguments);
+			
+			SpringEnvPreparer envPreparer = new SpringEnvPreparer(
+					this.applicationContextFactory, this.properties,
+					this.addConversionService, this.addCommandLineProperties, this.isCustomEnvironment,
+					this.mainApplicationClass, this.defaultProperties, getClassLoader(),
+					this.environment, deduceEnvironmentClass());
+					
+			ConfigurableEnvironment environment = envPreparer.prepareEnvironment(listeners, bootstrapContext, applicationArguments);
 			Banner printedBanner = printBanner(environment);
 			context = createApplicationContext();
 			context.setApplicationStartup(this.applicationStartup);
@@ -348,33 +355,6 @@ public class SpringApplication {
 		return bootstrapContext;
 	}
 
-private void prepareEnvironment(SpringApplicationRunListeners listeners,
-			DefaultBootstrapContext bootstrapContext, ApplicationArguments applicationArguments) {
-		
-		ConfigurableEnvironment env = getOrCreateEnvironment();
-		
-		configureEnvironment(env, applicationArguments.getSourceArgs());
-		ConfigurationPropertySources.attach(env);
-		listeners.environmentPrepared(bootstrapContext, env);
-		ApplicationInfoPropertySource.moveToEnd(env);
-		DefaultPropertiesPropertySource.moveToEnd(env);
-		Assert.state(!env.containsProperty("spring.main.environment-prefix"),
-				"Environment prefix cannot be set via properties.");
-		bindToSpringApplication(env);
-		
-		if (!this.isCustomEnvironment) {
-			EnvironmentConverter environmentConverter = new EnvironmentConverter(getClassLoader());
-			env = environmentConverter.convertEnvironmentIfNecessary(env, deduceEnvironmentClass());
-		}
-		ConfigurationPropertySources.attach(env);
-		
-		this.envForPrepareEnvironment = env;
-	}
-	
-	private ConfigurableEnvironment getEnvForPrepareEnvironment(){
-		return this.envForPrepareEnvironment;
-	}
-
 	private static final class ContextPreparationParameters {
 
 		private final DefaultBootstrapContext bootstrapContext;
@@ -382,8 +362,6 @@ private void prepareEnvironment(SpringApplicationRunListeners listeners,
 		private final ConfigurableApplicationContext context;
 
 		private final ConfigurableEnvironment environment;
-
-		private final ConfigurableEnvironment envForPrepareEnvironment; 
 
 		private final SpringApplicationRunListeners listeners;
 
@@ -526,90 +504,6 @@ private void prepareEnvironment(SpringApplicationRunListeners listeners,
 
 	private <T> List<T> getSpringFactoriesInstances(Class<T> type, @Nullable ArgumentResolver argumentResolver) {
 		return SpringFactoriesLoader.forDefaultResourceLocation(getClassLoader()).load(type, argumentResolver);
-	}
-
-	private ConfigurableEnvironment getOrCreateEnvironment() {
-		if (this.environment != null) {
-			return this.environment;
-		}
-		WebApplicationType webApplicationType = this.properties.getWebApplicationType();
-		ConfigurableEnvironment environment = this.applicationContextFactory.createEnvironment(webApplicationType);
-		if (environment == null && this.applicationContextFactory != ApplicationContextFactory.DEFAULT) {
-			environment = ApplicationContextFactory.DEFAULT.createEnvironment(webApplicationType);
-		}
-		return (environment != null) ? environment : new ApplicationEnvironment();
-	}
-
-	/**
-	 * Template method delegating to
-	 * {@link #configurePropertySources(ConfigurableEnvironment, String[])} and
-	 * {@link #configureProfiles(ConfigurableEnvironment, String[])} in that order.
-	 * Override this method for complete control over Environment customization, or one of
-	 * the above for fine-grained control over property sources or profiles, respectively.
-	 * @param environment this application's environment
-	 * @param args arguments passed to the {@code run} method
-	 * @see #configureProfiles(ConfigurableEnvironment, String[])
-	 * @see #configurePropertySources(ConfigurableEnvironment, String[])
-	 */
-	protected void configureEnvironment(ConfigurableEnvironment environment, String[] args) {
-		if (this.addConversionService) {
-			environment.setConversionService(new ApplicationConversionService());
-		}
-		configurePropertySources(environment, args);
-		configureProfiles(environment, args);
-	}
-
-	/**
-	 * Add, remove or re-order any {@link PropertySource}s in this application's
-	 * environment.
-	 * @param environment this application's environment
-	 * @param args arguments passed to the {@code run} method
-	 * @see #configureEnvironment(ConfigurableEnvironment, String[])
-	 */
-	protected void configurePropertySources(ConfigurableEnvironment environment, String[] args) {
-		MutablePropertySources sources = environment.getPropertySources();
-		if (!CollectionUtils.isEmpty(this.defaultProperties)) {
-			DefaultPropertiesPropertySource.addOrMerge(this.defaultProperties, sources);
-		}
-		if (this.addCommandLineProperties && args.length > 0) {
-			String name = CommandLinePropertySource.COMMAND_LINE_PROPERTY_SOURCE_NAME;
-			PropertySource<?> source = sources.get(name);
-			if (source != null) {
-				CompositePropertySource composite = new CompositePropertySource(name);
-				composite
-					.addPropertySource(new SimpleCommandLinePropertySource("springApplicationCommandLineArgs", args));
-				composite.addPropertySource(source);
-				sources.replace(name, composite);
-			}
-			else {
-				sources.addFirst(new SimpleCommandLinePropertySource(args));
-			}
-		}
-		environment.getPropertySources().addLast(new ApplicationInfoPropertySource(this.mainApplicationClass));
-	}
-
-	/**
-	 * Configure which profiles are active (or active by default) for this application
-	 * environment. Additional profiles may be activated during configuration file
-	 * processing through the {@code spring.profiles.active} property.
-	 * @param environment this application's environment
-	 * @param args arguments passed to the {@code run} method
-	 * @see #configureEnvironment(ConfigurableEnvironment, String[])
-	 */
-	protected void configureProfiles(ConfigurableEnvironment environment, String[] args) {
-	}
-
-	/**
-	 * Bind the environment to the {@link ApplicationProperties}.
-	 * @param environment the environment to bind
-	 */
-	protected void bindToSpringApplication(ConfigurableEnvironment environment) {
-		try {
-			Binder.get(environment).bind("spring.main", Bindable.ofInstance(this.properties));
-		}
-		catch (Exception ex) {
-			throw new IllegalStateException("Cannot bind to SpringApplication", ex);
-		}
 	}
 
 	private @Nullable Banner printBanner(ConfigurableEnvironment environment) {
