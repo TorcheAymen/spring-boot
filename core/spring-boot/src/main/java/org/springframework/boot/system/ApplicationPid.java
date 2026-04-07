@@ -50,12 +50,12 @@ public class ApplicationPid {
 		this.pid = pid;
 	}
 
-	private @Nullable Long currentProcessPid() {
+	private @Nullable Long currentProcessPid() throws ApplicationPidException {
 		try {
 			return ProcessHandle.current().pid();
 		}
 		catch (Throwable ex) {
-			return null;
+			throw new ApplicationPidException("Failed to get current process PID"  + ex.getMessage());
 		}
 	}
 
