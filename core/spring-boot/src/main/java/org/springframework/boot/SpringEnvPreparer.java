@@ -15,6 +15,8 @@ import org.springframework.core.env.SimpleCommandLinePropertySource;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.boot.bootstrap.DefaultBootstrapContext;
+import org.springframework.boot.context.properties.source.ConfigurationPropertySources;
+import org.springframework.boot.context.properties.source.ConfigurationPropertySourcesManager;
 
 /**
  * Composant extrait de SpringApplication 
@@ -56,7 +58,10 @@ class SpringEnvPreparer {
 		ConfigurableEnvironment env = getOrCreateEnvironment();
 		
 		configureEnvironment(env, applicationArguments.getSourceArgs());
-		ConfigurationPropertySources.attach(env);
+		
+		ConfigurationPropertySourcesManager propertySourcesManager = new ConfigurationPropertySources();
+		propertySourcesManager.attach(env);
+		
 		listeners.environmentPrepared(bootstrapContext, env);
 		ApplicationInfoPropertySource.moveToEnd(env);
 		DefaultPropertiesPropertySource.moveToEnd(env);
@@ -68,7 +73,7 @@ class SpringEnvPreparer {
 			EnvironmentConverter environmentConverter = new EnvironmentConverter(this.classLoader);
 			env = environmentConverter.convertEnvironmentIfNecessary(env, this.environmentClass);
 		}
-		ConfigurationPropertySources.attach(env);
+		propertySourcesManager.attach(env);
 		
 		this.envForPrepareEnvironment = env;
 		return env;
